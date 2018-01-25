@@ -14,7 +14,7 @@ Gigya's user deletion plugin allows the batch deletion of multiple users in Word
 
 The plugin includes two modes: soft-delete, which marks users as deleted but does not physically remove them from the database, and hard-delete, which removes users entirely.
 
-It can also be used independently of Gigya, to batch-delete regular WordPress users.
+It can also be used independently of Gigya, to batch-delete regular WordPress users. This requires changing 'gigya' to 'wordpress' in the do_user_deletion_job function
 
 Use at your own risk!
 
