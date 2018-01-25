@@ -21,8 +21,7 @@ Use at your own risk!
 
 == Installation ==
 
-1.	Install the <a href="https://wordpress.org/plugins/amazon-web-services/" title="Amazon Web Services WordPress plugin">Amazon Web Services plugin</a> from the WordPress plugin repository.
-2.	After downloading the Gigya - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
+2.	Download the Gigya - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
 3.	Go to the Plugins tab in the WordPress administration panel, find the Gigya - User Deletion plugin on the list and click Activate
 4.	Proceed to the plugin settings page to configure your plugin
 
