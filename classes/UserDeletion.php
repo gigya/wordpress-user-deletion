@@ -249,13 +249,24 @@ class UserDeletion
 		$deleted_user_count = count( $uids_deleted );
 		$failed_user_count = count( $uids_failed );
 		$total_user_count = $deleted_user_count + $failed_user_count;
+		if ($deleted_user_count > 0 and $failed_user_count == 0)
+			$success_type_string = 'finished successfully';
+		elseif ($deleted_user_count > 0 and $failed_user_count > 0)
+			$success_type_string = 'finished with errors';
+		else
+			$success_type_string = 'failed';
+
 		$email_subject = __( 'Gigya User Deletion Cron Job Completed' );
-		$email_body = "Gigya's user deletion cron job has finished running.\r\n\r\n" .
+		$email_body = "Gigya's user deletion cron job has ".$success_type_string.".\r\n\r\n" .
 			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n" .
 			"Deleted users:\r\n" .
 			implode( "\r\n", $uids_deleted ) . "\r\n" .
 			"Failed users:\r\n" .
 			implode( "\r\n", $uids_failed );
-		wp_mail( $this->settings['email_on_success'], $email_subject, $email_body );
+
+		if ($deleted_user_count > 0)
+			wp_mail( $this->settings['email_on_success'], $email_subject, $email_body );
+		else
+			wp_mail( $this->settings['email_on_failure'], $email_subject, $email_body );
 	}
 }
