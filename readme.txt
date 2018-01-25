@@ -21,9 +21,9 @@ Use at your own risk!
 
 == Installation ==
 
-2.	Download the Gigya - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
-3.	Go to the Plugins tab in the WordPress administration panel, find the Gigya - User Deletion plugin on the list and click Activate
-4.	Proceed to the plugin settings page to configure your plugin
+1.	Download the Gigya - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
+2.	Go to the Plugins tab in the WordPress administration panel, find the Gigya - User Deletion plugin on the list and click Activate
+3.	Proceed to the plugin settings page to configure your plugin
 
 For question about installations or configuration, please contact your account manager or contact our support via the support page on the Gigya site.
 
