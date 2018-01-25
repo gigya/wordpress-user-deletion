@@ -10,7 +10,7 @@ License: GPLv2 or later
 Batch-delete multiple users from WordPress
 
 == Description ==
-Gigya's user deletion plugin allows the batch deletion of multiple users in WordPress via cron job, based on a CSV file that sites in the Amazon S3 cloud storage service.
+Gigya's user deletion plugin allows the batch deletion of multiple users in WordPress via cron job, based on a CSV file that sits in the Amazon S3 cloud storage service.
 
 The plugin includes two modes: soft-delete, which marks users as deleted but does not physically remove them from the database, and hard-delete, which removes users entirely.
 

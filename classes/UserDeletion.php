@@ -127,6 +127,9 @@ class UserDeletion
 			$csv_contents = file_get_contents( 'gigya_user_deletion.tmp' );
 			if ( file_exists( 'gigya_user_deletion.tmp' ) )
 				unlink( 'gigya_user_deletion.tmp' );
+
+			if ( $this->logging_options['log_file_start'] )
+				error_log( $this->user_deletion_cron_string . ': processing file ' . $file . ' started.' );
 		}
 		catch ( Exception $e )
 		{
