@@ -46,7 +46,34 @@ function init() {
 function on_admin_form_update() {
 	$data = $_POST['gigya_user_deletion_settings'];
 
+	/* Form post-processing */
 	$_POST['gigya_user_deletion_settings']['aws_region'] = $_POST['gigya_user_deletion_settings']['aws_region_text'];
+
+	/* Form validation */
+	try
+	{
+		$s3_client = new \Aws\S3\S3Client(
+			array(
+				'region' => $data['aws_region'],
+				'version' => 'latest',
+				'credentials' => array(
+					'key' => $data['aws_access_key'],
+					'secret' => $data['aws_secret_key'],
+				),
+			)
+		);
+
+		$s3_client->listBuckets();
+	}
+	catch ( \Aws\S3\Exception\S3Exception $e )
+	{
+		add_settings_error( 'gigya_user_deletion_settings', 'api_validate', 'Error connecting to Amazon S3. Please check the WordPress debug log for more information. Your new S3 details have not been saved.', 'error' );
+		$existing_options = get_option( GIGYA_USER_DELETION__SETTINGS );
+
+		$_POST['gigya_user_deletion_settings']['aws_access_key'] = $existing_options['aws_access_key'];
+		$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $existing_options['aws_secret_key'];
+		$_POST['gigya_user_deletion_settings']['aws_region'] = $existing_options['aws_region'];
+	}
 
 	/*
 	 * Deletes cron and re-enables it. This way it's possible to change the cron's interval, and prevents from scheduling duplicates
