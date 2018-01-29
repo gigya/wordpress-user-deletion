@@ -259,11 +259,13 @@ class UserDeletion
 
 		$email_subject = __( 'Gigya User Deletion Cron Job Completed' );
 		$email_body = "Gigya's user deletion cron job has " . $success_type_string . ".\r\n\r\n" .
-			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n" .
-			"Deleted users:\r\n" .
+			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n";
+			/* Uncomment the following to add actual UID log to email (not recommended for large work loads)
+			 *
+			 * "Deleted users:\r\n" .
 			implode( "\r\n", $uids_deleted ) . "\r\n" .
 			"Failed users:\r\n" .
-			implode( "\r\n", $uids_failed );
+			implode( "\r\n", $uids_failed ); */
 
 		if ( $deleted_user_count > 0 )
 			wp_mail( $this->settings['email_on_success'], $email_subject, $email_body );
