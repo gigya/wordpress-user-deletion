@@ -19,8 +19,8 @@ function userDeletionSettingsForm() {
 	$form['delete_type'] = array(
 		'type' => 'select',
 		'options' => array(
-			'soft_delete' => __( 'Soft Delete' ),
-			'hard_delete' => __( 'Hard Delete' ),
+			'soft_delete' => __( 'Soft deletion' ),
+			'hard_delete' => __( 'Full user deletion' ),
 		),
 		'label' => __( 'Delete type' ),
 		'value' => render_gigya_user_deletion_setting( 'delete_type' ),
