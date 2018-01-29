@@ -1,6 +1,10 @@
 <?php
-function render_gigya_user_deletion_setting( $setting ) {
-	return render_setting( $setting, GIGYA_USER_DELETION__SETTINGS ); /* Does not support multisite! */
+function render_gigya_user_deletion_setting( $setting, $backup_setting = null ) { /* Does not support multisite! */
+	$value = render_setting( $setting, GIGYA_USER_DELETION__SETTINGS );
+	if ( ! empty( $value ) or empty( $backup_setting ) )
+		return $value;
+	else
+		return render_setting( $backup_setting, GIGYA_USER_DELETION__SETTINGS );
 }
 
 function userDeletionSettingsForm() {
@@ -15,11 +19,20 @@ function userDeletionSettingsForm() {
 	$form['delete_type'] = array(
 		'type' => 'select',
 		'options' => array(
-			'soft_delete' => __( 'Soft Delete' ),
-			'hard_delete' => __( 'Hard Delete' ),
+			'soft_delete' => __( 'Soft deletion' ),
+			'hard_delete' => __( 'Full user deletion' ),
 		),
 		'label' => __( 'Delete type' ),
 		'value' => render_gigya_user_deletion_setting( 'delete_type' ),
+	);
+
+	$form['job_frequency'] = array(
+		'type' => 'text',
+		'size' => 10,
+		'label' => __( 'Job frequency' ),
+		'value' => render_gigya_user_deletion_setting( 'job_frequency' ),
+		'markup' => __( 'seconds' ),
+		'desc' => 'Note: Unless separately configured as a cron job on the server, this setting depends on your users visiting this WordPress website.',
 	);
 
 	$form['email_on_success'] = array(
@@ -50,6 +63,8 @@ function userDeletionSettingsForm() {
 		'value' => render_gigya_user_deletion_setting( 'aws_secret_key' ),
 	);
 
+	$aws_region = render_gigya_user_deletion_setting( 'aws_region' );
+	$aws_region_other = render_gigya_user_deletion_setting( 'aws_region_text' );
 	$form['aws_region'] = array(
 		'type' => 'select',
 		'options' => array(
@@ -70,9 +85,17 @@ function userDeletionSettingsForm() {
 			'eu-west-2' => 'EU West (London)',
 			'eu-west-3' => 'EU West (Paris)',
 			'sa-east-1' => 'South American (São Paulo)',
+			'other' => 'Other',
 		),
 		'label' => __( 'Server / region' ),
-		'value' => render_gigya_user_deletion_setting( 'aws_region' ),
+	);
+	$form['aws_region']['value'] = ( in_array( $aws_region, array_keys( $form['aws_region']['options'] ) ) ) ? $aws_region : 'other';
+
+	$form['aws_region_text'] = array(
+		'type' => 'text',
+		'readonly' => true,
+		'size' => 26,
+		'value' => $aws_region_other,
 	);
 
 	$form['aws_bucket'] = array(

@@ -4,7 +4,7 @@ Contributors: gigya.com
 Tags: user deletion, batch, cron job
 Requires at least: 4.2
 Tested up to: 4.9
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 
 Batch-delete multiple users from WordPress
@@ -14,9 +14,7 @@ Gigya's user deletion plugin allows the batch deletion of multiple users in Word
 
 The plugin includes two modes: soft-delete, which marks users as deleted but does not physically remove them from the database, and hard-delete, which removes users entirely.
 
-It can also be used independently of Gigya, to batch-delete regular WordPress users.
-
-Use at your own risk!
+It can also be used independently of Gigya, to batch-delete regular WordPress users. This requires changing 'gigya' to 'wordpress' in the do_user_deletion_job function
 
 
 == Installation ==
@@ -29,3 +27,9 @@ For question about installations or configuration, please contact your account m
 
 
 == Changelog ==
+
+= 1.1 =
+* Support for WordPress-level job frequency configuration
+* Support for non-built-in Amazon S3 servers
+* Don't allow incorrect S3 details to overwrite correct ones
+* Bug fixes
