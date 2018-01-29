@@ -205,16 +205,17 @@ class UserDeletion
 			}
 		}
 
-		foreach ( $uid_list_assoc as $wordpress_uid => $csv_uid )
+		foreach ( $uid_list_assoc as $wp_uid => $csv_uid )
 		{
 			if ( $delete_type === 'soft_delete' )
 			{
 				if ( /* If soft-delete succeeded, write to the deleted users array. Note: There is an OR here so that if a previous deletion of the same user was botched, it should succeed on this retry. Put AND if you don't need this failover. */
-					add_user_meta( $wordpress_uid, 'is_deleted', 1, true ) and
-					add_user_meta( $wordpress_uid, 'deleted_date', time(), true )
+					add_user_meta( $wp_uid, 'is_deleted', 1, true ) and
+					add_user_meta( $wp_uid, 'deleted_date', time(), true )
 				)
 				{
 					$deleted_users[] = $csv_uid;
+					do_action( 'on_user_soft_delete_success', $wp_uid );
 					if ( $this->logging_options['log_delete_success'] )
 						error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
 				}
@@ -227,7 +228,7 @@ class UserDeletion
 			}
 			elseif ( $delete_type === 'hard_delete' ) /* Completely delete the user */
 			{
-				if ( wp_delete_user( $wordpress_uid ) )
+				if ( wp_delete_user( $wp_uid ) )
 				{
 					$deleted_users[] = $csv_uid;
 					if ( $this->logging_options['log_delete_success'] )
@@ -249,22 +250,22 @@ class UserDeletion
 		$deleted_user_count = count( $uids_deleted );
 		$failed_user_count = count( $uids_failed );
 		$total_user_count = $deleted_user_count + $failed_user_count;
-		if ($deleted_user_count > 0 and $failed_user_count == 0)
+		if ( $deleted_user_count > 0 and $failed_user_count == 0 )
 			$success_type_string = 'finished successfully';
-		elseif ($deleted_user_count > 0 and $failed_user_count > 0)
+		elseif ( $deleted_user_count > 0 and $failed_user_count > 0 )
 			$success_type_string = 'finished with errors';
 		else
 			$success_type_string = 'failed';
 
 		$email_subject = __( 'Gigya User Deletion Cron Job Completed' );
-		$email_body = "Gigya's user deletion cron job has ".$success_type_string.".\r\n\r\n" .
+		$email_body = "Gigya's user deletion cron job has " . $success_type_string . ".\r\n\r\n" .
 			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n" .
 			"Deleted users:\r\n" .
 			implode( "\r\n", $uids_deleted ) . "\r\n" .
 			"Failed users:\r\n" .
 			implode( "\r\n", $uids_failed );
 
-		if ($deleted_user_count > 0)
+		if ( $deleted_user_count > 0 )
 			wp_mail( $this->settings['email_on_success'], $email_subject, $email_body );
 		else
 			wp_mail( $this->settings['email_on_failure'], $email_subject, $email_body );
