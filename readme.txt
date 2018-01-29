@@ -31,3 +31,5 @@ For question about installations or configuration, please contact your account m
 = 1.1 =
 * Support for WordPress-level job frequency configuration
 * Support for non-built-in Amazon S3 servers
+* Don't allow incorrect S3 details to overwrite correct ones
+* Bug fixes
