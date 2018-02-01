@@ -32,7 +32,7 @@ function userDeletionSettingsForm() {
 		'label' => __( 'Job frequency' ),
 		'value' => render_gigya_user_deletion_setting( 'job_frequency' ),
 		'markup' => __( 'seconds' ),
-		'desc' => 'Note: Unless separately configured as a cron job on the server, this setting depends on your users visiting this WordPress website.',
+		'desc' => 'This setting relies on the WordPress cron mechanism.',
 	);
 
 	$form['email_on_success'] = array(
