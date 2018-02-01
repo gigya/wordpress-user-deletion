@@ -16,12 +16,13 @@ class UserDeletion
 		$this->date_format = 'Y-m-d H:i:s';
 
 		$this->logging_options = array( //// TODO: Convert to WP options
-			'log_start' => true,
-			'log_file_start' => true,
-			'log_delete_success' => true,
-			'log_user_not_found' => true,
-			'log_delete_failure' => true,
-			'log_end' => true,
+										'log_start'          => true,
+										'log_file_start'     => true,
+										'log_delete_success' => true,
+										'log_user_skip'      => true,
+										'log_user_not_found' => true,
+										'log_delete_failure' => true,
+										'log_end'            => true,
 		);
 	}
 
@@ -63,10 +64,10 @@ class UserDeletion
 		{
 			$s3_client = new \Aws\S3\S3Client(
 				array(
-					'region' => $this->settings['aws_region'],
-					'version' => 'latest',
+					'region'      => $this->settings['aws_region'],
+					'version'     => 'latest',
 					'credentials' => array(
-						'key' => $this->settings['aws_access_key'],
+						'key'    => $this->settings['aws_access_key'],
 						'secret' => $this->settings['aws_secret_key'],
 					),
 				)
@@ -74,9 +75,9 @@ class UserDeletion
 
 			/* Works up to 1000 objects! */
 			$aws_object_list = $s3_client->listObjects( array(
-															'Bucket' => $this->settings['aws_bucket'],
-															'Prefix' => $this->settings['aws_directory'],
-														) );
+				'Bucket' => $this->settings['aws_bucket'],
+				'Prefix' => $this->settings['aws_directory'],
+			) );
 			foreach ( $aws_object_list as $key => $object_list )
 			{
 				if ( $key == 'Contents' )
@@ -109,20 +110,20 @@ class UserDeletion
 		{
 			$s3_client = new \Aws\S3\S3Client(
 				array(
-					'region' => $this->settings['aws_region'],
-					'version' => 'latest',
+					'region'      => $this->settings['aws_region'],
+					'version'     => 'latest',
 					'credentials' => array(
-						'key' => $this->settings['aws_access_key'],
+						'key'    => $this->settings['aws_access_key'],
 						'secret' => $this->settings['aws_secret_key'],
 					),
 				)
 			);
 
 			$s3_client->getObject( array(
-									   'Bucket' => $this->settings['aws_bucket'],
-									   'Key' => $file,
-									   'SaveAs' => 'gigya_user_deletion.tmp',
-								   ) );
+				'Bucket' => $this->settings['aws_bucket'],
+				'Key'    => $file,
+				'SaveAs' => 'gigya_user_deletion.tmp',
+			) );
 
 			$csv_contents = file_get_contents( 'gigya_user_deletion.tmp' );
 			if ( file_exists( 'gigya_user_deletion.tmp' ) )
@@ -155,9 +156,9 @@ class UserDeletion
 	 */
 	private function getWordPressIdByGigyaUid( $gigya_uid ) {
 		$wp_user = get_users( array(
-								  'meta_key' => 'gigya_uid',
-								  'meta_value' => $gigya_uid,
-							  ) );
+			'meta_key'   => 'gigya_uid',
+			'meta_value' => $gigya_uid,
+		) );
 
 		if ( ! empty( $wp_user ) )
 			$wp_user = $wp_user[0];
@@ -205,42 +206,48 @@ class UserDeletion
 			}
 		}
 
+//		add_filter('gigya_pre_delete_user', array($this, 'testfunction'), 10, 2);
 		foreach ( $uid_list_assoc as $wp_uid => $csv_uid )
 		{
-			if ( $delete_type === 'soft_delete' )
+			if ( apply_filters( 'gigya_pre_delete_user', $wp_uid ) )
 			{
-				if ( /* If soft-delete succeeded, write to the deleted users array. Note: There is an OR here so that if a previous deletion of the same user was botched, it should succeed on this retry. Put AND if you don't need this failover. */
-					add_user_meta( $wp_uid, 'is_deleted', 1, true ) and
-					add_user_meta( $wp_uid, 'deleted_date', time(), true )
-				)
+				if ( $delete_type === 'soft_delete' )
 				{
-					$deleted_users[] = $csv_uid;
-					do_action( 'on_user_soft_delete_success', $wp_uid );
-					if ( $this->logging_options['log_delete_success'] )
-						error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
+					if ( /* If soft-delete succeeded, write to the deleted users array. Note: There is an OR here so that if a previous deletion of the same user was botched, it should succeed on this retry. Put AND if you don't need this failover. */
+						add_user_meta( $wp_uid, 'is_deleted', 1, true ) and
+						add_user_meta( $wp_uid, 'deleted_date', time(), true )
+					)
+					{
+						$deleted_users[] = $csv_uid;
+						do_action( 'gigya_on_user_soft_delete_success', $wp_uid );
+						if ( $this->logging_options['log_delete_success'] )
+							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
+					}
+					else
+					{
+						$failed_users[] = $csv_uid;
+						if ( $this->logging_options['log_delete_failure'] )
+							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed!' );
+					}
 				}
-				else
+				elseif ( $delete_type === 'hard_delete' ) /* Completely delete the user */
 				{
-					$failed_users[] = $csv_uid;
-					if ( $this->logging_options['log_delete_failure'] )
-						error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed!' );
+					if ( wp_delete_user( $wp_uid ) )
+					{
+						$deleted_users[] = $csv_uid;
+						if ( $this->logging_options['log_delete_success'] )
+							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted (total delete!)' );
+					}
+					else
+					{
+						$failed_users[] = $csv_uid;
+						if ( $this->logging_options['log_delete_failure'] )
+							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed' );
+					}
 				}
 			}
-			elseif ( $delete_type === 'hard_delete' ) /* Completely delete the user */
-			{
-				if ( wp_delete_user( $wp_uid ) )
-				{
-					$deleted_users[] = $csv_uid;
-					if ( $this->logging_options['log_delete_success'] )
-						error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted (total delete!)' );
-				}
-				else
-				{
-					$failed_users[] = $csv_uid;
-					if ( $this->logging_options['log_delete_failure'] )
-						error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed' );
-				}
-			}
+			elseif ( $this->logging_options['log_user_skip'] )
+				error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' Gigya deletion skipped via custom hook' );
 		}
 
 		return $deleted_users;
@@ -260,12 +267,12 @@ class UserDeletion
 		$email_subject = __( 'Gigya User Deletion Cron Job Completed' );
 		$email_body = "Gigya's user deletion cron job has " . $success_type_string . ".\r\n\r\n" .
 			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n";
-			/* Uncomment the following to add actual UID log to email (not recommended for large work loads)
-			 *
-			 * "Deleted users:\r\n" .
-			implode( "\r\n", $uids_deleted ) . "\r\n" .
-			"Failed users:\r\n" .
-			implode( "\r\n", $uids_failed ); */
+		/* Uncomment the following to add actual UID log to email (not recommended for large work loads)
+		 *
+		 * "Deleted users:\r\n" .
+		implode( "\r\n", $uids_deleted ) . "\r\n" .
+		"Failed users:\r\n" .
+		implode( "\r\n", $uids_failed ); */
 
 		if ( $deleted_user_count > 0 )
 			wp_mail( $this->settings['email_on_success'], $email_subject, $email_body );
