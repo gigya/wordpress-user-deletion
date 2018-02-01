@@ -19,7 +19,7 @@ function userDeletionSettingsForm() {
 	$form['delete_type'] = array(
 		'type' => 'select',
 		'options' => array(
-			'soft_delete' => __( 'Soft deletion' ),
+			'soft_delete' => __( 'Tag deleted user' ),
 			'hard_delete' => __( 'Full user deletion' ),
 		),
 		'label' => __( 'Delete type' ),
