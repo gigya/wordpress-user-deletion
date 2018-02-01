@@ -33,3 +33,6 @@ For question about installations or configuration, please contact your account m
 * Support for non-built-in Amazon S3 servers
 * Don't allow incorrect S3 details to overwrite correct ones
 * Bug fixes
+
+= 1.1.1 =
+* Support for pre-deletion hook that determines whether to delete any given user
