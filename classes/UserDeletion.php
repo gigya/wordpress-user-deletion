@@ -206,7 +206,6 @@ class UserDeletion
 			}
 		}
 
-//		add_filter('gigya_pre_delete_user', array($this, 'testfunction'), 10, 2);
 		foreach ( $uid_list_assoc as $wp_uid => $csv_uid )
 		{
 			if ( apply_filters( 'gigya_pre_delete_user', $wp_uid ) )
