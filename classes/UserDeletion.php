@@ -218,7 +218,7 @@ class UserDeletion
 					)
 					{
 						$deleted_users[] = $csv_uid;
-						do_action( 'gigya_on_user_soft_delete_success', $wp_uid );
+						do_action( 'gigya_on_tag_user_deletion', $wp_uid );
 						if ( $this->logging_options['log_delete_success'] )
 							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
 					}
