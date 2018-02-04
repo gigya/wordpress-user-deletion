@@ -5,6 +5,7 @@ class GigyaUserDeletionSettings
 	private $function = 'userDeletionSettingsForm';
 	private $slug = GIGYA_USER_DELETION__SETTINGS;
 	private $title = 'Gigya User Deletion Settings';
+	private $title_short = 'User Deletion Settings';
 
 	public function __construct() {
 		wp_enqueue_style( 'gigya_user_deletion_admin_css', GIGYA_USER_DELETION__PLUGIN_URL . 'admin/styles/gigya_user_deletion_admin.css' );
@@ -37,7 +38,7 @@ class GigyaUserDeletionSettings
 			{
 				add_submenu_page( 'gigya_global_settings', /* Gigya core plugin slug */
 								  __( $this->title ),
-								  __( $this->title ),
+								  __( $this->title_short ),
 								  GIGYA_USER_DELETION__PERMISSION_LEVEL,
 								  $this->slug,
 								  array( $this, 'adminPage' )
