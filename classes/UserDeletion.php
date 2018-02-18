@@ -105,6 +105,10 @@ class UserDeletion
 		return $files;
 	}
 
+	/**
+	 * @param string $file
+	 * @return bool|string
+	 */
 	public function getS3FileContents( $file ) {
 		try
 		{
@@ -141,6 +145,10 @@ class UserDeletion
 		return $csv_contents;
 	}
 
+	/**
+	 * @param string $user_csv_string
+	 * @return array
+	 */
 	public function getUsers( $user_csv_string ) {
 		$csv_array = ( ! empty( $user_csv_string ) ) ? array_map( 'trim', explode( "\n", $user_csv_string ) ) : array();
 		array_shift( $csv_array );
@@ -252,6 +260,10 @@ class UserDeletion
 		return $deleted_users;
 	}
 
+	/**
+	 * @param array $uids_deleted
+	 * @param array $uids_failed
+	 */
 	public function sendEmail( $uids_deleted, $uids_failed ) {
 		$deleted_user_count = count( $uids_deleted );
 		$failed_user_count = count( $uids_failed );
