@@ -9,13 +9,14 @@
  * License: GPL2+
  */
 
+define( 'GIGYA_USER_DELETION', 'gigya_user_deletion' );
 define( 'GIGYA_USER_DELETION__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PERMISSION_LEVEL', 'manage_options' );
 define( 'GIGYA_USER_DELETION__VERSION', '1.1' );
-define( 'GIGYA_USER_DELETION__SETTINGS', 'gigya_user_deletion_settings' );
-define( 'GIGYA_USER_DELETION__RUN_OPTION', 'gigya_user_deletion_last_run' );
-define( 'GIGYA_USER_DELETION__QUEUE', 'gigya_user_deletion_queue' );
+define( 'GIGYA_USER_DELETION__SETTINGS', GIGYA_USER_DELETION . '_settings' );
+define( 'GIGYA_USER_DELETION__RUN_OPTION', GIGYA_USER_DELETION . '_last_run' );
+define( 'GIGYA_USER_DELETION__QUEUE', GIGYA_USER_DELETION . '_queue' );
 
 add_action( 'admin_action_update', 'on_admin_form_update' );
 add_action( 'gigya_user_deletion_cron', 'do_user_deletion_job' );
@@ -27,7 +28,19 @@ require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'render.php';
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'classes/UserDeletion.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 
-/* Let's get started */
+/**
+ * Register activation hook
+ */
+register_activation_hook( __FILE__, 'gigyaUserDeletionActivationHook' );
+function gigyaUserDeletionActivationHook() {
+	require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'install.php';
+	$install = new GigyaUserDeletionInstall();
+	$install->init();
+}
+
+/**
+ * Let's get started
+ */
 init();
 
 /**
@@ -91,9 +104,12 @@ function on_admin_form_update() {
 }
 
 function do_user_deletion_job() {
-	$deleted_users = array();
-	$failed_users = array();
-	$job_failed = false;
+	global $wpdb;
+
+	$deleted_users             = array();
+	$failed_users              = array();
+	$job_failed                = true;
+	$gigya_user_deletion_table = $wpdb->prefix . GIGYA_USER_DELETION;
 
 	$user_deletion = new UserDeletion;
 	$user_deletion->start();
@@ -101,20 +117,28 @@ function do_user_deletion_job() {
 
 	if ( is_array( $files ) )
 	{
+		/* Get only the files that have not been processed */
+		$query = $wpdb->prepare( "SELECT * FROM {$gigya_user_deletion_table} WHERE filename IN (" . implode( ', ', array_fill( 0, count( $files ), '%s' ) ) . ")", $files );
+		$files = array_diff( $files, array_column( $wpdb->get_results( $query, ARRAY_A ), 'filename' ) );
+
 		foreach ( $files as $file )
 		{
-			if ( ! $job_failed )
-			{
-				$csv = $user_deletion->getS3FileContents( $file );
-				$users = $user_deletion->getUsers( $csv );
-				$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
-				if ( ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) )
-					$job_failed = true;
+			$csv           = $user_deletion->getS3FileContents( $file );
+			$users         = $user_deletion->getUsers( $csv );
+			$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
+			if ( ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) ) {
+				/* File failed entirely */
+			} else /* Job succeeded or succeeded with errors */ {
+				$job_failed = false;
+
+				/* Mark file as processed */
+				$wpdb->insert( $gigya_user_deletion_table, array(
+					'filename'      => $file,
+					'time_processed' => time(),
+				) );
 			}
 		}
 	}
-	else
-		$job_failed = true;
 
 	$user_deletion->sendEmail( $deleted_users, $failed_users );
 	$user_deletion->finish( ! $job_failed );

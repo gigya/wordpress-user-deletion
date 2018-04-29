@@ -214,47 +214,46 @@ class UserDeletion
 			}
 		}
 
+		/* Actual user deletion */
 		foreach ( $uid_list_assoc as $wp_uid => $csv_uid )
 		{
-			if ( apply_filters( 'gigya_pre_delete_user', $wp_uid ) )
-			{
-				if ( $delete_type === 'soft_delete' )
-				{
-					if ( /* If soft-delete succeeded, write to the deleted users array. Note: There is an OR here so that if a previous deletion of the same user was botched, it should succeed on this retry. Put AND if you don't need this failover. */
-						add_user_meta( $wp_uid, 'is_deleted', 1, true ) and
-						add_user_meta( $wp_uid, 'deleted_date', time(), true )
-					)
-					{
-						$deleted_users[] = $csv_uid;
-						do_action( 'gigya_on_tag_user_deletion', $wp_uid );
-						if ( $this->logging_options['log_delete_success'] )
-							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
+			if ( ! empty( $csv_uid ) ) {
+				if ( apply_filters( 'gigya_pre_delete_user', $wp_uid ) ) {
+					if ( $delete_type === 'soft_delete' ) {
+						if ( /* If soft-delete succeeded, write to the deleted users array.
+                            Note: There is an OR here so that if a previous deletion of the same user was botched, it should succeed on this retry.
+                            Put AND if you don't need this fail-over. */
+							add_user_meta( $wp_uid, 'is_deleted', 1, true ) and
+							add_user_meta( $wp_uid, 'deleted_date', time(), true )
+						) {
+							$deleted_users[] = $csv_uid;
+							do_action( 'gigya_on_tag_user_deletion', $wp_uid );
+							if ( $this->logging_options['log_delete_success'] ) {
+								error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted' );
+							}
+						} else {
+							$failed_users[] = $csv_uid;
+							if ( $this->logging_options['log_delete_failure'] ) {
+								error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed!' );
+							}
+						}
+					} elseif ( $delete_type === 'hard_delete' ) /* Completely delete the user */ {
+						if ( wp_delete_user( $wp_uid ) ) {
+							$deleted_users[] = $csv_uid;
+							if ( $this->logging_options['log_delete_success'] ) {
+								error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted (total delete!)' );
+							}
+						} else {
+							$failed_users[] = $csv_uid;
+							if ( $this->logging_options['log_delete_failure'] ) {
+								error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed' );
+							}
+						}
 					}
-					else
-					{
-						$failed_users[] = $csv_uid;
-						if ( $this->logging_options['log_delete_failure'] )
-							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed!' );
-					}
-				}
-				elseif ( $delete_type === 'hard_delete' ) /* Completely delete the user */
-				{
-					if ( wp_delete_user( $wp_uid ) )
-					{
-						$deleted_users[] = $csv_uid;
-						if ( $this->logging_options['log_delete_success'] )
-							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deleted (total delete!)' );
-					}
-					else
-					{
-						$failed_users[] = $csv_uid;
-						if ( $this->logging_options['log_delete_failure'] )
-							error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' deletion failed' );
-					}
+				} elseif ( $this->logging_options['log_user_skip'] ) {
+					error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' Gigya deletion skipped via custom hook' );
 				}
 			}
-			elseif ( $this->logging_options['log_user_skip'] )
-				error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' Gigya deletion skipped via custom hook' );
 		}
 
 		return $deleted_users;
