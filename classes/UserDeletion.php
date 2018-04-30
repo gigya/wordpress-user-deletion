@@ -37,9 +37,11 @@ class UserDeletion
 	/**
 	 * Indicates cron end
 	 *
-	 * @param boolean $success_status Whether the cron ended successfully
+	 * @param bool $success_status $success_status Whether the cron ended successfully
+	 * @param int $file_count
+	 * @param int $failed_count
 	 */
-	public function finish( $success_status ) {
+	public function finish( $success_status, $file_count = 0, $failed_count = 0 ) {
 		if ( $success_status )
 		{
 			update_option( GIGYA_USER_DELETION__RUN_OPTION, time() );
@@ -51,6 +53,7 @@ class UserDeletion
 		{
 			error_log( __( 'Gigya cron failed' ) . ': ' . date( $this->date_format ) );
 		}
+		error_log( __( 'Gigya cron files: ' . ( $file_count - $failed_count ) . ' succeeded of a total ' . $file_count . ' processed.' ) );
 	}
 
 	/**
@@ -85,12 +88,10 @@ class UserDeletion
 					foreach ( $object_list as $object )
 					{
 						/* If last successful run is unknown, or if known take only the files modified after that last run */
-						if ( ! $this->last_successful_run or ( $object['LastModified']->getTimestamp() > $this->last_successful_run ) )
+						$object_pathinfo = pathinfo( $object['Key'] );
+						if ( isset( $object_pathinfo['extension'] ) and $object_pathinfo['extension'] === 'csv' )
 						{
-							if ( pathinfo( $object['Key'] )['extension'] === 'csv' ) /* PHP 5.4+ */
-							{
-								$files[] = $object['Key'];
-							}
+							$files[] = $object['Key'];
 						}
 					}
 				}

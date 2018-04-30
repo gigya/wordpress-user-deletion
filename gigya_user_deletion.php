@@ -115,33 +115,43 @@ function do_user_deletion_job() {
 	$user_deletion->start();
 	$files = $user_deletion->getS3FileList();
 
-	if ( is_array( $files ) )
-	{
-		/* Get only the files that have not been processed */
-		$query = $wpdb->prepare( "SELECT * FROM {$gigya_user_deletion_table} WHERE filename IN (" . implode( ', ', array_fill( 0, count( $files ), '%s' ) ) . ")", $files );
-		$files = array_diff( $files, array_column( $wpdb->get_results( $query, ARRAY_A ), 'filename' ) );
+	$file_count = 0;
+	$failed_count = 0;
 
-		foreach ( $files as $file )
-		{
+	if ( is_array( $files ) ) {
+		/* Get only the files that have not been processed */
+		if ( count( $files ) > 0 ) {
+			$query = $wpdb->prepare( "SELECT * FROM {$gigya_user_deletion_table} WHERE filename IN (" . implode( ', ', array_fill( 0, count( $files ), '%s' ) ) . ")", $files );
+			$files = array_diff( $files, array_column( $wpdb->get_results( $query, ARRAY_A ), 'filename' ) );
+			if ( ( $file_count = count( $files ) ) === 0 ) {
+				$job_failed = false;
+			}
+		} else {
+			$job_failed = false;
+		}
+
+		foreach ( $files as $file ) {
 			$csv           = $user_deletion->getS3FileContents( $file );
 			$users         = $user_deletion->getUsers( $csv );
 			$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
 			if ( ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) ) {
-				/* File failed entirely */
+				$failed_count++;
 			} else /* Job succeeded or succeeded with errors */ {
 				$job_failed = false;
 
 				/* Mark file as processed */
 				$wpdb->insert( $gigya_user_deletion_table, array(
-					'filename'      => $file,
+					'filename'       => $file,
 					'time_processed' => time(),
 				) );
 			}
 		}
+	} else {
+		$job_failed = false;
 	}
 
 	$user_deletion->sendEmail( $deleted_users, $failed_users );
-	$user_deletion->finish( ! $job_failed );
+	$user_deletion->finish( ! $job_failed, $file_count, $failed_count );
 }
 
 function get_gigya_cron_schedules( $schedules ) {
