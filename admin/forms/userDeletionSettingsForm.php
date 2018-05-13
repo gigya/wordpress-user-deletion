@@ -60,7 +60,7 @@ function userDeletionSettingsForm() {
 	$form['aws_secret_key'] = array(
 		'type' => 'password',
 		'label' => __( 'Secret key' ),
-		'value' => render_gigya_user_deletion_setting( 'aws_secret_key' ),
+		'value' => '',
 	);
 
 	$aws_region = render_gigya_user_deletion_setting( 'aws_region' );

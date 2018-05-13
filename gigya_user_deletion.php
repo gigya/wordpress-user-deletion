@@ -63,6 +63,15 @@ function on_admin_form_update() {
 
 		/* Form post-processing */
 		$_POST['gigya_user_deletion_settings']['aws_region'] = $_POST['gigya_user_deletion_settings']['aws_region_text'];
+		if ( ! $data['aws_secret_key'] ) {
+			if ( is_multisite() ) {
+				$options = get_blog_option( 1, GIGYA_USER_DELETION__SETTINGS );
+			} else {
+				$options = get_option( GIGYA_USER_DELETION__SETTINGS );
+			}
+			$data['aws_secret_key'] = $options['aws_secret_key'];
+			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $options['aws_secret_key'];
+		}
 
 		/* Form validation */
 		try
@@ -96,8 +105,7 @@ function on_admin_form_update() {
 		 */
 		$cron_name = 'gigya_user_deletion_cron';
 		wp_clear_scheduled_hook( $cron_name );
-		if ( $data['enable_cron'] )
-		{
+		if ( $data['enable_cron'] ) {
 			wp_schedule_event( time(), 'custom', $cron_name );
 		}
 	}
