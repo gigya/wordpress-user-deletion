@@ -103,6 +103,7 @@ function on_admin_form_update() {
 			$_POST['gigya_user_deletion_settings']['aws_access_key'] = $existing_options['aws_access_key'];
 			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $existing_options['aws_secret_key'];
 			$_POST['gigya_user_deletion_settings']['aws_region'] = $existing_options['aws_region'];
+			$_POST['gigya_user_deletion_settings']['aws_region_text'] = $existing_options['aws_region_text'];
 		}
 
 		/*
