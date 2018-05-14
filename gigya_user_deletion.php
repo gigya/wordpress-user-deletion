@@ -26,6 +26,7 @@ add_filter( 'cron_schedules', 'get_gigya_cron_schedules' );
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'vendor/autoload.php';
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'render.php';
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'classes/UserDeletion.php';
+require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'classes/UserDeletionHelper.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 
 /**
@@ -62,6 +63,7 @@ function on_admin_form_update() {
 		$data = $_POST['gigya_user_deletion_settings'];
 
 		/* Form post-processing */
+		$user_deletion_helper = new UserDeletionHelper();
 		$_POST['gigya_user_deletion_settings']['aws_region'] = $_POST['gigya_user_deletion_settings']['aws_region_text'];
 		if ( ! $data['aws_secret_key'] ) {
 			if ( is_multisite() ) {
@@ -69,8 +71,12 @@ function on_admin_form_update() {
 			} else {
 				$options = get_option( GIGYA_USER_DELETION__SETTINGS );
 			}
-			$data['aws_secret_key'] = $options['aws_secret_key'];
+			$data['aws_secret_key'] = $user_deletion_helper::decrypt($options['aws_secret_key'], SECURE_AUTH_KEY);
 			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $options['aws_secret_key'];
+		}
+		else
+		{
+			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $user_deletion_helper::encrypt($data['aws_secret_key'], SECURE_AUTH_KEY);
 		}
 
 		/* Form validation */

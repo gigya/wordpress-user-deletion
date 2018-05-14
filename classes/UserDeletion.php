@@ -65,13 +65,14 @@ class UserDeletion
 		$files = array();
 		try
 		{
+			$user_deletion_helper = new UserDeletionHelper();
 			$s3_client = new \Aws\S3\S3Client(
 				array(
 					'region'      => $this->settings['aws_region'],
 					'version'     => 'latest',
 					'credentials' => array(
 						'key'    => $this->settings['aws_access_key'],
-						'secret' => $this->settings['aws_secret_key'],
+						'secret' => $user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
 					),
 				)
 			);
