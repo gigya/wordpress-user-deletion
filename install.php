@@ -9,7 +9,7 @@ class GigyaUserDeletionInstall {
 
 		$sql = "CREATE TABLE {$table_name} (
 				  id mediumint(9) NOT NULL AUTO_INCREMENT,
-				  filename varchar(128) NOT NULL,
+				  filename varchar(128) NOT NULL UNIQUE,
 				  time_processed int(11) NOT NULL,
 				  PRIMARY KEY  (id)
 				) {$charset_collate};";
