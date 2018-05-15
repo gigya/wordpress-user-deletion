@@ -80,6 +80,9 @@ function on_admin_form_update() {
 		}
 
 		/* Form validation */
+		if ( $data['aws_region'] == 'other' ) {
+			$data['aws_region'] = $data['aws_region_text'];
+		}
 		try
 		{
 			$s3_client = new \Aws\S3\S3Client(
