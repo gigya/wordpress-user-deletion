@@ -4,7 +4,7 @@ Contributors: gigya.com
 Tags: user deletion, batch, cron job
 Requires at least: 4.2
 Tested up to: 4.9
-Stable tag: 1.1
+Stable tag: 1.1.1
 License: GPLv2 or later
 
 Batch-delete multiple users from WordPress
@@ -33,3 +33,6 @@ For question about installations or configuration, please contact your account m
 * Support for non-built-in Amazon S3 servers
 * Don't allow incorrect S3 details to overwrite correct ones
 * Bug fixes
+
+= 1.1.1 =
+* Fixed some UI/UX issues in the configuration page

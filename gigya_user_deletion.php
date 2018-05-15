@@ -3,7 +3,7 @@
  * Plugin Name: Gigya - User Deletion
  * Plugin URI: http://gigya.com
  * Description: Auxiliary plugin for Gigya – Social Infrastructure, allowing the batch deletion of users based on a CSV. Can also be used independently of Gigya.
- * Version: 1.1
+ * Version: 1.1.1
  * Author: Gigya
  * Author URI: http://gigya.com
  * License: GPL2+
@@ -42,12 +42,12 @@ function gigyaUserDeletionActivationHook() {
 /**
  * Let's get started
  */
-init();
+gigya_user_deletion_init();
 
 /**
  * Initializes basic plugin functionality
  */
-function init() {
+function gigya_user_deletion_init() {
 	if ( is_admin() )
 	{
 		/* Loads requirements for the admin settings section */
@@ -93,7 +93,10 @@ function on_admin_form_update() {
 				)
 			);
 
-			$s3_client->listBuckets();
+			$s3_client->listObjects( array(
+				'Bucket' => $data['aws_bucket'],
+				'Prefix' => $data['aws_directory'],
+			) );
 		}
 		catch ( \Aws\S3\Exception\S3Exception $e )
 		{
