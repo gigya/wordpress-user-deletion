@@ -39,4 +39,5 @@ For question about installations or configuration, please contact your account m
 * Fixed bug related to incorrect failure reporting
 
 = 1.2 =
+* Support for pre-deletion hook that determines whether to delete any given user
 * Full encryption for AWS secret key
