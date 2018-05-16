@@ -3,19 +3,20 @@
  * Plugin Name: Gigya - User Deletion
  * Plugin URI: http://gigya.com
  * Description: Auxiliary plugin for Gigya – Social Infrastructure, allowing the batch deletion of users based on a CSV. Can also be used independently of Gigya.
- * Version: 1.1
+ * Version: 1.2
  * Author: Gigya
  * Author URI: http://gigya.com
  * License: GPL2+
  */
 
+define( 'GIGYA_USER_DELETION', 'gigya_user_deletion' );
 define( 'GIGYA_USER_DELETION__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PERMISSION_LEVEL', 'manage_options' );
 define( 'GIGYA_USER_DELETION__VERSION', '1.1' );
-define( 'GIGYA_USER_DELETION__SETTINGS', 'gigya_user_deletion_settings' );
-define( 'GIGYA_USER_DELETION__RUN_OPTION', 'gigya_user_deletion_last_run' );
-define( 'GIGYA_USER_DELETION__QUEUE', 'gigya_user_deletion_queue' );
+define( 'GIGYA_USER_DELETION__SETTINGS', GIGYA_USER_DELETION . '_settings' );
+define( 'GIGYA_USER_DELETION__RUN_OPTION', GIGYA_USER_DELETION . '_last_run' );
+define( 'GIGYA_USER_DELETION__QUEUE', GIGYA_USER_DELETION . '_queue' );
 
 add_action( 'admin_action_update', 'on_admin_form_update' );
 add_action( 'gigya_user_deletion_cron', 'do_user_deletion_job' );
@@ -25,15 +26,28 @@ add_filter( 'cron_schedules', 'get_gigya_cron_schedules' );
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'vendor/autoload.php';
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'render.php';
 require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'classes/UserDeletion.php';
+require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'classes/UserDeletionHelper.php';
 require_once ABSPATH . 'wp-admin/includes/user.php';
 
-/* Let's get started */
-init();
+/**
+ * Register activation hook
+ */
+register_activation_hook( __FILE__, 'gigyaUserDeletionActivationHook' );
+function gigyaUserDeletionActivationHook() {
+	require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'install.php';
+	$install = new GigyaUserDeletionInstall();
+	$install->init();
+}
+
+/**
+ * Let's get started
+ */
+gigya_user_deletion_init();
 
 /**
  * Initializes basic plugin functionality
  */
-function init() {
+function gigya_user_deletion_init() {
 	if ( is_admin() )
 	{
 		/* Loads requirements for the admin settings section */
@@ -49,9 +63,26 @@ function on_admin_form_update() {
 		$data = $_POST['gigya_user_deletion_settings'];
 
 		/* Form post-processing */
+		$user_deletion_helper = new UserDeletionHelper();
 		$_POST['gigya_user_deletion_settings']['aws_region'] = $_POST['gigya_user_deletion_settings']['aws_region_text'];
+		if ( ! $data['aws_secret_key'] ) {
+			if ( is_multisite() ) {
+				$options = get_blog_option( 1, GIGYA_USER_DELETION__SETTINGS );
+			} else {
+				$options = get_option( GIGYA_USER_DELETION__SETTINGS );
+			}
+			$data['aws_secret_key'] = $user_deletion_helper::decrypt($options['aws_secret_key'], SECURE_AUTH_KEY);
+			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $options['aws_secret_key'];
+		}
+		else
+		{
+			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $user_deletion_helper::encrypt($data['aws_secret_key'], SECURE_AUTH_KEY);
+		}
 
 		/* Form validation */
+		if ( $data['aws_region'] == 'other' ) {
+			$data['aws_region'] = $data['aws_region_text'];
+		}
 		try
 		{
 			$s3_client = new \Aws\S3\S3Client(
@@ -65,7 +96,10 @@ function on_admin_form_update() {
 				)
 			);
 
-			$s3_client->listBuckets();
+			$s3_client->listObjects( array(
+				'Bucket' => $data['aws_bucket'],
+				'Prefix' => $data['aws_directory'],
+			) );
 		}
 		catch ( \Aws\S3\Exception\S3Exception $e )
 		{
@@ -75,6 +109,7 @@ function on_admin_form_update() {
 			$_POST['gigya_user_deletion_settings']['aws_access_key'] = $existing_options['aws_access_key'];
 			$_POST['gigya_user_deletion_settings']['aws_secret_key'] = $existing_options['aws_secret_key'];
 			$_POST['gigya_user_deletion_settings']['aws_region'] = $existing_options['aws_region'];
+			$_POST['gigya_user_deletion_settings']['aws_region_text'] = $existing_options['aws_region_text'];
 		}
 
 		/*
@@ -83,41 +118,62 @@ function on_admin_form_update() {
 		 */
 		$cron_name = 'gigya_user_deletion_cron';
 		wp_clear_scheduled_hook( $cron_name );
-		if ( $data['enable_cron'] )
-		{
+		if ( $data['enable_cron'] ) {
 			wp_schedule_event( time(), 'custom', $cron_name );
 		}
 	}
 }
 
 function do_user_deletion_job() {
-	$deleted_users = array();
-	$failed_users = array();
-	$job_failed = false;
+	global $wpdb;
+
+	$deleted_users             = array();
+	$failed_users              = array();
+	$job_failed                = true;
+	$gigya_user_deletion_table = $wpdb->prefix . GIGYA_USER_DELETION;
 
 	$user_deletion = new UserDeletion;
 	$user_deletion->start();
 	$files = $user_deletion->getS3FileList();
 
-	if ( is_array( $files ) )
-	{
-		foreach ( $files as $file )
-		{
-			if ( ! $job_failed )
-			{
-				$csv = $user_deletion->getS3FileContents( $file );
-				$users = $user_deletion->getUsers( $csv );
-				$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
-				if ( ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) )
-					$job_failed = true;
+	$file_count = 0;
+	$failed_count = 0;
+
+	if ( is_array( $files ) ) {
+		/* Get only the files that have not been processed */
+		if ( count( $files ) > 0 ) {
+			$query = $wpdb->prepare( "SELECT * FROM {$gigya_user_deletion_table} WHERE filename IN (" . implode( ', ', array_fill( 0, count( $files ), '%s' ) ) . ")", $files );
+			$files = array_diff( $files, array_column( $wpdb->get_results( $query, ARRAY_A ), 'filename' ) );
+			if ( ( $file_count = count( $files ) ) === 0 ) {
+				$job_failed = false;
+			}
+		} else {
+			$job_failed = false;
+		}
+
+		foreach ( $files as $file ) {
+			$csv           = $user_deletion->getS3FileContents( $file );
+			$users         = $user_deletion->getUsers( $csv );
+			$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
+
+			if ( $csv === false or ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) ) {
+				$failed_count++;
+			} else /* Job succeeded or succeeded with errors */ {
+				$job_failed = false;
+
+				/* Mark file as processed */
+				$wpdb->insert( $gigya_user_deletion_table, array(
+					'filename'       => $file,
+					'time_processed' => time(),
+				) );
 			}
 		}
+	} else {
+		$job_failed = false;
 	}
-	else
-		$job_failed = true;
 
 	$user_deletion->sendEmail( $deleted_users, $failed_users );
-	$user_deletion->finish( ! $job_failed );
+	$user_deletion->finish( ! $job_failed, $file_count, $failed_count );
 }
 
 function get_gigya_cron_schedules( $schedules ) {
