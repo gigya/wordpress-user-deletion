@@ -7,6 +7,7 @@ class UserDeletion
 	private $logging_options;
 	private $date_format;
 	private $user_deletion_cron_string;
+	private $user_deletion_helper;
 
 	public function __construct() {
 		$this->settings = get_option( GIGYA_USER_DELETION__SETTINGS );
@@ -24,6 +25,8 @@ class UserDeletion
 										'log_delete_failure' => true,
 										'log_end'            => true,
 		);
+
+		$this->user_deletion_helper = new UserDeletionHelper();
 	}
 
 	/**
@@ -65,14 +68,13 @@ class UserDeletion
 		$files = array();
 		try
 		{
-			$user_deletion_helper = new UserDeletionHelper();
 			$s3_client = new \Aws\S3\S3Client(
 				array(
 					'region'      => $this->settings['aws_region'],
 					'version'     => 'latest',
 					'credentials' => array(
 						'key'    => $this->settings['aws_access_key'],
-						'secret' => $user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
+						'secret' => $this->user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
 					),
 				)
 			);
@@ -120,7 +122,7 @@ class UserDeletion
 					'version'     => 'latest',
 					'credentials' => array(
 						'key'    => $this->settings['aws_access_key'],
-						'secret' => $this->settings['aws_secret_key'],
+						'secret' => $this->user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
 					),
 				)
 			);

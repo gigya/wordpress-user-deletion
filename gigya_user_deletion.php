@@ -3,7 +3,7 @@
  * Plugin Name: Gigya - User Deletion
  * Plugin URI: http://gigya.com
  * Description: Auxiliary plugin for Gigya – Social Infrastructure, allowing the batch deletion of users based on a CSV. Can also be used independently of Gigya.
- * Version: 1.1.1
+ * Version: 1.2
  * Author: Gigya
  * Author URI: http://gigya.com
  * License: GPL2+
@@ -155,7 +155,8 @@ function do_user_deletion_job() {
 			$csv           = $user_deletion->getS3FileContents( $file );
 			$users         = $user_deletion->getUsers( $csv );
 			$deleted_users = $user_deletion->deleteUsers( 'gigya', $users, $failed_users );
-			if ( ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) ) {
+
+			if ( $csv === false or ! empty( $users ) and ( ! is_array( $deleted_users ) or empty( $deleted_users ) ) ) {
 				$failed_count++;
 			} else /* Job succeeded or succeeded with errors */ {
 				$job_failed = false;
