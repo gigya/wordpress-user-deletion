@@ -74,7 +74,7 @@ class UserDeletion
 					'version'     => 'latest',
 					'credentials' => array(
 						'key'    => $this->settings['aws_access_key'],
-						'secret' => $this->user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
+						'secret' => ($this->user_deletion_helper)::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY), /* Parentheses for PHP 5.x compatibility */
 					),
 				)
 			);
@@ -122,7 +122,7 @@ class UserDeletion
 					'version'     => 'latest',
 					'credentials' => array(
 						'key'    => $this->settings['aws_access_key'],
-						'secret' => $this->user_deletion_helper::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY),
+						'secret' => ($this->user_deletion_helper)::decrypt($this->settings['aws_secret_key'], SECURE_AUTH_KEY), /* Parentheses for PHP 5.x compatibility */
 					),
 				)
 			);
