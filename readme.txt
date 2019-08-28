@@ -41,3 +41,6 @@ For question about installations or configuration, please contact your account m
 = 1.2 =
 * Support for pre-deletion hook that determines whether to delete any given user
 * Full encryption for AWS secret key
+
+= 1.2.1 =
+* Fixed a PHP 5.x compatibility issue
