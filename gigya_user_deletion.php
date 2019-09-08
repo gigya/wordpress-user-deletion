@@ -119,7 +119,7 @@ function on_admin_form_update() {
 		$cron_name = 'gigya_user_deletion_cron';
 		wp_clear_scheduled_hook( $cron_name );
 		if ( $data['enable_cron'] ) {
-			wp_schedule_event( time(), 'custom', $cron_name );
+			wp_schedule_event( time(), 'gigya_user_deletion_custom', $cron_name );
 		}
 	}
 }
@@ -198,7 +198,7 @@ function get_gigya_cron_schedules( $schedules ) {
 	);
 
 	$settings = get_option( GIGYA_USER_DELETION__SETTINGS );
-	$schedules['custom'] = array(
+	$schedules['gigya_user_deletion_custom'] = array(
 		'interval' => ( ! empty( $settings['job_frequency'] ) ) ? $settings['job_frequency'] : 3600,
 		'display' => __( 'Custom' ),
 	);
