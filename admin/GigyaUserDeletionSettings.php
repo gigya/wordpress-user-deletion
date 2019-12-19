@@ -4,8 +4,8 @@ class GigyaUserDeletionSettings
 {
 	private $function = 'userDeletionSettingsForm';
 	private $slug = GIGYA_USER_DELETION__SETTINGS;
-	private $title = 'Gigya User Deletion Settings';
-	private $title_short = 'User Deletion Settings';
+	private $title = 'SAP Customer Data Cloud User Deletion';
+	private $title_short = 'User Deletion';
 
 	public function __construct() {
 		wp_enqueue_style( 'gigya_user_deletion_admin_css', GIGYA_USER_DELETION__PLUGIN_URL . 'admin/styles/gigya_user_deletion_admin.css' );
@@ -27,16 +27,16 @@ class GigyaUserDeletionSettings
 
 	/**
 	 * Initializes admin menu option for this plugin.
-	 * There are two options: Either the core Gigya plugin is installed/enabled, which puts this plugin as a submenu item, or this plugin is standalone, which gives it its own menu item
+	 * There are two options: Either the core SAP CDC plugin is installed/enabled, which puts this plugin as a submenu item, or this plugin is standalone, which gives it its own menu item
 	 */
 	public function adminMenu() {
 		require_once GIGYA_USER_DELETION__PLUGIN_DIR . 'admin/forms/' . $this->function . '.php';
 
 		if ( current_user_can( GIGYA_USER_DELETION__PERMISSION_LEVEL ) )
 		{
-			if ( class_exists( 'GigyaSettings' ) ) /* If Gigya core plugin is installed and active */
+			if ( class_exists( 'GigyaSettings' ) ) /* If SAP CDC core plugin is installed and active */
 			{
-				add_submenu_page( 'gigya_global_settings', /* Gigya core plugin slug */
+				add_submenu_page( 'gigya_global_settings', /* SAP CDC core plugin slug */
 								  __( $this->title ),
 								  __( $this->title_short ),
 								  GIGYA_USER_DELETION__PERMISSION_LEVEL,
