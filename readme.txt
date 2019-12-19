@@ -1,4 +1,4 @@
-=== Gigya - User Deletion ===
+=== SAP Customer Data Cloud - User Deletion ===
 
 Contributors: gigya.com
 Tags: user deletion, batch, cron job
@@ -10,20 +10,20 @@ License: GPLv2 or later
 Batch-delete multiple users from WordPress
 
 == Description ==
-Gigya's user deletion plugin allows the batch deletion of multiple users in WordPress via cron job, based on a CSV file that sits in the Amazon S3 cloud storage service.
+SAP Customer Data Cloud's user deletion plugin allows the batch deletion of multiple users in WordPress via cron job, based on a CSV file that sits in the Amazon S3 cloud storage service.
 
 The plugin includes two modes: soft-delete, which marks users as deleted but does not physically remove them from the database, and hard-delete, which removes users entirely.
 
-It can also be used independently of Gigya, to batch-delete regular WordPress users. This requires changing 'gigya' to 'wordpress' in the do_user_deletion_job function
+It can also be used independently of SAP CDC, to batch-delete regular WordPress users. This requires changing 'gigya' to 'wordpress' in the do_user_deletion_job function
 
 
 == Installation ==
 
-1.	Download the Gigya - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
-2.	Go to the Plugins tab in the WordPress administration panel, find the Gigya - User Deletion plugin on the list and click Activate
+1.	Download the SAP Customer Data Cloud - User Deletion plugin, unpack and upload the folder to the the /wp-content/plugins/ directory on your website
+2.	Go to the Plugins tab in the WordPress administration panel, find the SAP Customer Data Cloud - User Deletion plugin on the list and click Activate
 3.	Proceed to the plugin settings page to configure your plugin
 
-For question about installations or configuration, please contact your account manager or contact our support via the support page on the Gigya site.
+For question about installations or configuration, please contact your account manager or contact our support via the support page on the SAP Customer Data Cloud site.
 
 
 == Changelog ==
@@ -44,3 +44,6 @@ For question about installations or configuration, please contact your account m
 
 = 1.2.1 =
 * Fixed a PHP 5.x compatibility issue
+
+= 1.2.2 =
+* Gigya renamed to SAP Customer Data Cloud

@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: Gigya - User Deletion
+ * Plugin Name: SAP Customer Data Cloud - User Deletion
  * Plugin URI: http://gigya.com
- * Description: Auxiliary plugin for Gigya – Social Infrastructure, allowing the batch deletion of users based on a CSV. Can also be used independently of Gigya.
+ * Description: Auxiliary plugin for SAP Customer Data Cloud, allowing the batch deletion of users based on a CSV. Can also be used independently of SAP Customer Data Cloud.
  * Version: 1.2
- * Author: Gigya
+ * Author: SAP SE
  * Author URI: http://gigya.com
  * License: GPL2+
  */

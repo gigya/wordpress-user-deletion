@@ -13,7 +13,7 @@ class UserDeletion
 		$this->settings = get_option( GIGYA_USER_DELETION__SETTINGS );
 		$this->last_successful_run = intval( get_option( GIGYA_USER_DELETION__RUN_OPTION ) );
 
-		$this->user_deletion_cron_string = __( 'Gigya user deletion cron' );
+		$this->user_deletion_cron_string = __( 'SAP CDC user deletion cron' );
 		$this->date_format = 'Y-m-d H:i:s';
 
 		$this->logging_options = array( //// TODO: Convert to WP options
@@ -34,7 +34,7 @@ class UserDeletion
 	 */
 	public function start() {
 		if ( $this->logging_options['log_start'] )
-			error_log( __( 'Gigya cron started' ) . ': ' . date( $this->date_format ) );
+			error_log( __( 'SAP CDC cron started' ) . ': ' . date( $this->date_format ) );
 	}
 
 	/**
@@ -50,13 +50,13 @@ class UserDeletion
 			update_option( GIGYA_USER_DELETION__RUN_OPTION, time() );
 
 			if ( $this->logging_options['log_end'] )
-				error_log( __( 'Gigya cron finished successfully' ) . ': ' . date( $this->date_format ) );
+				error_log( __( 'SAP CDC cron finished successfully' ) . ': ' . date( $this->date_format ) );
 		}
 		else
 		{
-			error_log( __( 'Gigya cron failed' ) . ': ' . date( $this->date_format ) );
+			error_log( __( 'SAP CDC cron failed' ) . ': ' . date( $this->date_format ) );
 		}
-		error_log( __( 'Gigya cron files: ' . ( $file_count - $failed_count ) . ' succeeded of a total ' . $file_count . ' processed.' ) );
+		error_log( __( 'SAP CDC cron files: ' . ( $file_count - $failed_count ) . ' succeeded of a total ' . $file_count . ' processed.' ) );
 	}
 
 	/**
@@ -102,7 +102,7 @@ class UserDeletion
 		}
 		catch ( Exception $e )
 		{
-			error_log( 'Error connecting Gigya user deletion to AWS A3 on Get File List: ' . $e->getMessage() . '. Please check your credentials.' );
+			error_log( 'Error connecting SAP Customer Data Cloud user deletion to AWS A3 on Get File List: ' . $e->getMessage() . '. Please check your credentials.' );
 			return false;
 		}
 
@@ -142,7 +142,7 @@ class UserDeletion
 		}
 		catch ( Exception $e )
 		{
-			error_log( 'Error connecting Gigya user deletion to AWS A3 on Get File Contents: ' . $e->getMessage() . '. Please check your credentials.' );
+			error_log( 'Error connecting SAP CDC user deletion to AWS A3 on Get File Contents: ' . $e->getMessage() . '. Please check your credentials.' );
 			return false;
 		}
 
@@ -161,7 +161,7 @@ class UserDeletion
 	}
 
 	/**
-	 * Gets a WordPress user ID by Gigya UID
+	 * Gets a WordPress user ID by SAP Customer Data Cloud UID
 	 *
 	 * @param $gigya_uid
 	 * @return int|false
@@ -190,7 +190,7 @@ class UserDeletion
 		$deleted_users = array();
 		$uid_list_assoc = array();
 
-		/* Retrieves WP UIDs from Gigya UIDs if necessary */
+		/* Retrieves WP UIDs from SAP CDC UIDs if necessary */
 		foreach ( $uid_list as $uid )
 		{
 			if ( $uid_type === 'gigya' )
@@ -255,7 +255,7 @@ class UserDeletion
 						}
 					}
 				} elseif ( $this->logging_options['log_user_skip'] ) {
-					error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' Gigya deletion skipped via custom hook' );
+					error_log( $this->user_deletion_cron_string . ': user ' . $csv_uid . ' SAP CDC deletion skipped via custom hook' );
 				}
 			}
 		}
@@ -278,8 +278,8 @@ class UserDeletion
 		else
 			$success_type_string = 'failed';
 
-		$email_subject = __( 'Gigya User Deletion Cron Job Completed' );
-		$email_body = "Gigya's user deletion cron job has " . $success_type_string . ".\r\n\r\n" .
+		$email_subject = __( 'SAP Customer Data Cloud User Deletion Cron Job Completed' );
+		$email_body = "SAP Customer Data Cloud's user deletion cron job has " . $success_type_string . ".\r\n\r\n" .
 			"In total, {$deleted_user_count} out of {$total_user_count} users queued were deleted.\r\n\r\n";
 		/* Uncomment the following to add actual UID log to email (not recommended for large work loads)
 		 *
