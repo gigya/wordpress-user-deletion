@@ -102,7 +102,7 @@ class UserDeletion
 		}
 		catch ( Exception $e )
 		{
-			error_log( 'Error connecting SAP Customer Data Cloud user deletion to AWS A3 on Get File List: ' . $e->getMessage() . '. Please check your credentials.' );
+			error_log( 'Error connecting SAP CDC user deletion to AWS A3 on Get File List: ' . $e->getMessage() . '. Please check your credentials.' );
 			return false;
 		}
 

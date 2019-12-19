@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: SAP Customer Data Cloud - User Deletion
- * Plugin URI: http://gigya.com
+ * Plugin URI: https://www.sap.com/products/crm/customer-data-management.html
  * Description: Auxiliary plugin for SAP Customer Data Cloud, allowing the batch deletion of users based on a CSV. Can also be used independently of SAP Customer Data Cloud.
- * Version: 1.2
+ * Version: 1.2.2
  * Author: SAP SE
- * Author URI: http://gigya.com
+ * Author URI: https://www.sap.com/products/crm/customer-data-management.html
  * License: GPL2+
  */
 
@@ -13,7 +13,7 @@ define( 'GIGYA_USER_DELETION', 'gigya_user_deletion' );
 define( 'GIGYA_USER_DELETION__PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GIGYA_USER_DELETION__PERMISSION_LEVEL', 'manage_options' );
-define( 'GIGYA_USER_DELETION__VERSION', '1.1' );
+define( 'GIGYA_USER_DELETION__VERSION', '1.2.2' );
 define( 'GIGYA_USER_DELETION__SETTINGS', GIGYA_USER_DELETION . '_settings' );
 define( 'GIGYA_USER_DELETION__RUN_OPTION', GIGYA_USER_DELETION . '_last_run' );
 define( 'GIGYA_USER_DELETION__QUEUE', GIGYA_USER_DELETION . '_queue' );

@@ -4,8 +4,8 @@ class GigyaUserDeletionSettings
 {
 	private $function = 'userDeletionSettingsForm';
 	private $slug = GIGYA_USER_DELETION__SETTINGS;
-	private $title = 'SAP CDC User Deletion Settings';
-	private $title_short = 'User Deletion Settings';
+	private $title = 'SAP Customer Data Cloud User Deletion';
+	private $title_short = 'User Deletion';
 
 	public function __construct() {
 		wp_enqueue_style( 'gigya_user_deletion_admin_css', GIGYA_USER_DELETION__PLUGIN_URL . 'admin/styles/gigya_user_deletion_admin.css' );
